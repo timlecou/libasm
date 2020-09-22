@@ -1,17 +1,13 @@
-segment	.text
-	global	_ft_write
+segment .text
+	global ft_write
 
-_ft_write:
-	mov		r8, rdx
-	mov		rax, 0x2000004
+ft_write:
+	mov	rax,	1
 	syscall
-	jc		exit_error
-	jmp		exit
-
-exit_error:
-	mov		rax, -1
+	cmp	rax,	-1
+	jnge	error
 	ret
 
-exit:
-	mov		rax, r8
+error:
+	mov	rax,	-1
 	ret

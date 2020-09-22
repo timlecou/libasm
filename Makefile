@@ -12,30 +12,29 @@
 
 NAME = libasm.a
 
-SRCS = ft_strlen.s ft_strcmp.s ft_write.s ft_read.s\
-	   ft_strdup.s ft_strcpy.s
+SRCS = ft_strlen.s ft_strcmp.s ft_strcpy.s ft_read.s ft_write.s ft_strdup.s
 
-OBJ = $(SRCS:.s=.o)
+OBJS = $(SRCS:.s=.o)
 
-%.o	: %.s
-	nasm -f macho64 $< -o $@
+.s.o : $(SRCS)
+	nasm -f elf64 $<
 
-CC = nasm
+$(NAME) : $(OBJS)
+	ar rc $(NAME) $(OBJS)
+	ranlib $(NAME)
 
-FLAGS = -f macho64
+all : $(NAME)
 
-$(NAME): $(OBJ)
-	ar rcs $(NAME) $(OBJ)
 
-all: $(NAME)
+clean :
+	rm -rf $(OBJS)
 
-clean:
-	/bin/rm -f $(OBJ)
+fclean : clean
+	rm -rf $(NAME)
+	rm a.out
 
-fclean: clean
-	/bin/rm -f $(NAME)
-	/bin/rm -f a.out
+re : fclean all
 
-re: clean all
-
-.PHONY: fclean, all
+test : all
+	gcc main.c $(NAME)
+	./a.out

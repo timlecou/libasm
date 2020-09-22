@@ -1,10 +1,10 @@
 #include "libasm.h"
-# define RESET   "\033[0m"
-# define RED     "\033[31m"
-# define GREEN   "\033[32m"
-# define BLUE	 "\033[36m"
-# define YELLOW  "\033[33m"
-# define BUFFER_SIZE 512
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define BLUE	 "\033[36m"
+#define YELLOW  "\033[33m"
+#define BUFFER_SIZE 512
 
 int		strlen_test(char *str)
 {
@@ -56,6 +56,30 @@ int		strcmp_test(char *s1, char *s2)
 	return (1);
 }
 
+int		read_test(char *str)
+{
+	int		ft_read_pipe[2];
+	char	buf[BUFFER_SIZE];
+	int		ret;
+
+	bzero(buf, BUFFER_SIZE);
+	if (pipe(ft_read_pipe) < 0)
+		exit(EXIT_FAILURE);
+	fcntl(ft_read_pipe[0], F_SETFL, O_NONBLOCK);
+	write(ft_read_pipe[1], str, strlen(str));
+	ret = ft_read(ft_read_pipe[0], buf, BUFFER_SIZE);
+	buf[ret] = '\0';
+
+	printf("\nTEST : " BLUE "[%s]" RESET "\n", buf);
+	if (!strcmp(buf, str))
+		printf("" GREEN "	==>[OK] " RESET "");
+	else
+		printf("" RED "	==>[KO] " RESET "");
+	close(ft_read_pipe[1]);
+	close(ft_read_pipe[0]);
+	return (1);
+}
+
 int		write_test(char *str)
 {
 	int		ft_write_pipe[2];
@@ -80,30 +104,6 @@ int		write_test(char *str)
 	return (1);
 }
 
-int		read_test(char *str)
-{
-	int		ft_read_pipe[2];
-	char	buf[BUFFER_SIZE];
-	int		ret;
-
-	bzero(buf, BUFFER_SIZE);
-	if (pipe(ft_read_pipe) < 0)
-		exit(EXIT_FAILURE);
-	fcntl(ft_read_pipe[0], F_SETFL, O_NONBLOCK);
-	write(ft_read_pipe[1], str, strlen(str));
-	ret = ft_read(ft_read_pipe[0], buf, BUFFER_SIZE);
-	buf[ret] = '\0';
-
-	printf("\nTEST : " BLUE "[%s]" RESET "\n", str);
-	if (!strcmp(buf, str))
-		printf("" GREEN "	==>[OK] " RESET "");
-	else
-		printf("" RED "	==>[KO] " RESET "");
-	close(ft_read_pipe[1]);
-	close(ft_read_pipe[0]);
-	return (1);
-}
-
 int		strdup_test(char *str)
 {
 	char	*str1;
@@ -122,16 +122,17 @@ int		strdup_test(char *str)
 	return (1);
 }
 
-int		main(void)
+
+int	main(void)
 {
 	/*
 	** FT_STRLEN
 	*/
 	printf("" BLUE "---{FT_STRLEN}---" RESET "\n");
-	strlen_test("allo");
+	strlen_test("salut");
 	strlen_test("");
-	strlen_test("on test tout ce qu'on peut mon gars");
-	strlen_test("allo \0 mon gars");
+	strlen_test("une phrase un peu plus longue");
+	strlen_test("avec un \0 caractere null");
 	strlen_test("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tellus metus, finibus quis sagittis quis, volutpat a justo. Nunc et pellentesque quam. Fusce aliquam aliquam libero, sed pulvinar nullam.");
 	strlen_test("        ");
 	printf("\n\n");
@@ -142,9 +143,9 @@ int		main(void)
 	printf("" BLUE "---{FT_STRCPY}---" RESET "\n");
 	strcpy_test("abc");
 	strcpy_test("");
-	strcpy_test("allo mon gars");
-	strcpy_test("allo \0 mon gars");
-	strcpy_test("ca fou koi allo");
+	strcpy_test("salut tout le monde");
+	strcpy_test("avec un \0 caractere null");
+	strcpy_test("une autre phrase");
 	strcpy_test("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tellus metus, finibus quis sagittis quis, volutpat a justo. Nunc et pellentesque quam. Fusce aliquam aliquam libero, sed pulvinar nullam.");
 	strcpy_test("        ");
 	printf("\n\n");
@@ -156,7 +157,7 @@ int		main(void)
 	strcmp_test("allo", "allo");
 	strcmp_test("abcdef", "zcdef");
 	strcmp_test("", "wtf");
-	strcmp_test("on test tout ce qu'on peut mon gars", "   ");
+	strcmp_test("une phrase un petit peu plus longue", "   ");
 	strcmp_test("", "");
 	strcmp_test("beta", "");
 	strcmp_test("te\0", "\0");
@@ -164,16 +165,6 @@ int		main(void)
 	strcmp_test("\xff\x80", "\xff\x00");
 	strcmp_test("\xff\xfe", "\xff");
 	strcmp_test("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tellus metus, finibus quis sagittis quis, volutpat a justo. Nunc et pellentesque quam. Fusce aliquam aliquam libero, ed pulvinar nullam.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tellus metus, finibus quis sagittis quis, volutpat a justo. Nunc et pellentesque quam. Fusce aliquam aliquam libero, sed pulvinar nullam.");
-	printf("\n\n");
-
-	/*
-	** FT_WRITE
-	*/
-	printf("" BLUE "---{FT_WRITE}---" RESET "\n");
-	write_test("");
-	write_test("test");
-	write_test("test allo");
-	write_test("test allo \0 what");
 	printf("\n\n");
 
 	/*
@@ -189,14 +180,24 @@ int		main(void)
 	printf("\n\n");
 
 	/*
+	** FT_WRITE
+	*/
+	printf("" BLUE "---{FT_WRITE}---" RESET "\n");
+	write_test("");
+	write_test("test");
+	write_test("test allo");
+	write_test("test allo \0 what");
+	printf("\n\n");
+
+	/*
 	** FT_STRDUP
 	*/
 	printf("" BLUE "---{FT_STRDUP}---" RESET "\n");
+	strdup_test("");
 	strdup_test("allo");
 	strdup_test("allo wtf");
-	strdup_test("");
-	strdup_test("allo \0 mon bars");
+	strdup_test("allo \0 mon gars");
 	strdup_test("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce tellus metus, finibus quis sagittis quis, volutpat a justo. Nunc et pellentesque quam. Fusce aliquam aliquam libero, sed pulvinar nullam.");
 	printf("\n");
-
+	return (0);
 }
